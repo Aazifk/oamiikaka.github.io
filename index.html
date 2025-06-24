@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Islamic Study Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+    <meta name="description" content="Track your Islamic studies, prayers, Quran reading, and spiritual progress daily">
+    <meta name="keywords" content="Islamic study tracker, prayer tracker, Quran reading, Islamic education, Muslim daily routine">
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { Calendar, BookOpen, Clock, CheckCircle, Star, Moon, Sun, Heart } = lucide;
+
+        const IslamicStudyTracker = () => {
+          const [currentDate, setCurrentDate] = useState(new Date());
+          const [selectedDate, setSelectedDate] = useState(new Date());
+          const [dailyTasks, setDailyTasks] = useState({
+            prayers: {
+              fajr: false,
+              dhuhr: false,
+              asr: false,
+              maghrib: false,
+              isha: false
+            },
+            quranReading: {
+              completed: false,
+              pages: 0,
+              targetPages: 2
+            },
+            islamicStudy: {
+              completed: false,
+              minutes: 0,
+              targetMinutes: 30
+            },
+            dhikr: {
+              completed: false,
+              count: 0,
+              targetCount: 100
+            },
+            dua: {
+              completed: false,
+              studied: ''
+            }
+          });
+
+          const [weeklyGoals, setWeeklyGoals] = useState({
+            quranPages: { completed: 0, target: 14 },
+            hadithStudy: { completed: 0, target: 5 },
+            islamicLectures: { completed: 0, target: 3 },
+            charity: { completed: false }
+          });
+
+          const [studyTopics] = useState([
+            'Aqeedah (Beliefs)',
+            'Fiqh (Jurisprudence)',
+            'Hadith Studies',
+            'Seerah (Prophet\'s Biography)',
+            'Tafseer (Quran Commentary)',
+            'Islamic History',
+            'Arabic Language',
+            'Akhlaq (Character Development)'
+          ]);
+
+          const [selectedTopic, setSelectedTopic] = useState('');
+          const [notes, setNotes] = useState('');
+
+          const prayerTimes = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+          
+          const formatDate = (date) => {
+            return date.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            });
+          };
+
+          const getHijriDate = () => {
+            const gregorianDate = new Date();
+            const hijriYear = Math.floor((gregorianDate.getFullYear() - 622) * 1.030684) + 1;
+            return `${hijriYear} AH`;
+          };
+
+          const togglePrayer = (prayer) => {
+            setDailyTasks(prev => ({
+              ...prev,
+              prayers: {
+                ...prev.prayers,
+                [prayer]: !prev.prayers[prayer]
+              }
+            }));
+          };
+
+          const updateQuranProgress = (pages) => {
+            setDailyTasks(prev => ({
+              ...prev,
+              quranReading: {
+                ...prev.quranReading,
+                pages: Math.max(0, pages),
+                completed: pages >= prev.quranReading.targetPages
+              }
+            }));
+          };
+
+          const updateStudyTime = (minutes) => {
+            setDailyTasks(prev => ({
+              ...prev,
+              islamicStudy: {
+                ...prev.islamicStudy,
+                minutes: Math.max(0, minutes),
+                completed: minutes >= prev.islamicStudy.targetMinutes
+              }
+            }));
+          };
+
+          const updateDhikrCount = (count) => {
+            setDailyTasks(prev => ({
+              ...prev,
+              dhikr: {
+                ...prev.dhikr,
+                count: Math.max(0, count),
+                completed: count >= prev.dhikr.targetCount
+              }
+            }));
+          };
+
+          const calculateDailyProgress = () => {
+            const prayerCount = Object.values(dailyTasks.prayers).filter(Boolean).length;
+            const totalTasks = prayerCount + (dailyTasks.quranReading.completed ? 1 : 0) + 
+                              (dailyTasks.islamicStudy.completed ? 1 : 0) + 
+                              (dailyTasks.dhikr.completed ? 1 : 0) + 
+                              (dailyTasks.dua.completed ? 1 : 0);
+            return Math.round((totalTasks / 9) * 100);
+          };
+
+          return React.createElement('div', { className: "min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 p-4" },
+            React.createElement('div', { className: "max-w-6xl mx-auto" },
+              // Header
+              React.createElement('div', { className: "bg-white rounded-xl shadow-lg p-6 mb-6" },
+                React.createElement('div', { className: "flex items-center justify-between mb-4" },
+                  React.createElement('div', { className: "flex items-center space-x-3" },
+                    React.createElement('div', { className: "bg-emerald-100 p-3 rounded-lg" },
+                      React.createElement(BookOpen, { className: "w-8 h-8 text-emerald-600" })
+                    ),
+                    React.createElement('div', null,
+                      React.createElement('h1', { className: "text-3xl font-bold text-gray-800" }, 'Islamic Study Tracker'),
+                      React.createElement('p', { className: "text-gray-600" }, 'Strengthen your Deen through consistent practice')
+                    )
+                  ),
+                  React.createElement('div', { className: "text-right" },
+                    React.createElement('p', { className: "text-lg font-semibold text-gray-800" }, formatDate(currentDate)),
+                    React.createElement('p', { className: "text-emerald-600 font-medium" }, getHijriDate())
+                  )
+                ),
+                React.createElement('div', { className: "bg-emerald-50 rounded-lg p-4" },
+                  React.createElement('div', { className: "flex items-center justify-between mb-2" },
+                    React.createElement('span', { className: "text-emerald-800 font-medium" }, 'Daily Progress'),
+                    React.createElement('span', { className: "text-emerald-700 font-bold" }, `${calculateDailyProgress()}%`)
+                  ),
+                  React.createElement('div', { className: "w-full bg-emerald-200 rounded-full h-3" },
+                    React.createElement('div', { 
+                      className: "bg-emerald-500 h-3 rounded-full transition-all duration-300",
+                      style: { width: `${calculateDailyProgress()}%` }
+                    })
+                  )
+                )
+              ),
+
+              React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-3 gap-6" },
+                // Daily Prayers
+                React.createElement('div', { className: "bg-white rounded-xl shadow-lg p-6" },
+                  React.createElement('div', { className: "flex items-center space-x-2 mb-4" },
+                    React.createElement(Clock, { className: "w-6 h-6 text-blue-600" }),
+                    React.createElement('h2', { className: "text-xl font-bold text-gray-800" }, 'Daily Prayers')
+                  ),
+                  React.createElement('div', { className: "space-y-3" },
+                    prayerTimes.map((prayer) =>
+                      React.createElement('div', { key: prayer, className: "flex items-center justify-between" },
+                        React.createElement('div', { className: "flex items-center space-x-3" },
+                          prayer === 'Fajr' ? React.createElement(Sun, { className: "w-4 h-4 text-yellow-500" }) :
+                          prayer === 'Maghrib' ? React.createElement(Moon, { className: "w-4 h-4 text-indigo-500" }) :
+                          React.createElement(Clock, { className: "w-4 h-4 text-gray-400" }),
+                          React.createElement('span', { className: "text-gray-700" }, prayer)
+                        ),
+                        React.createElement('button', {
+                          onClick: () => togglePrayer(prayer.toLowerCase()),
+                          className: `w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                            dailyTasks.prayers[prayer.toLowerCase()] 
+                              ? 'bg-green-500 border-green-500 text-white' 
+                              : 'border-gray-300 hover:border-green-400'
+                          }`
+                        },
+                          dailyTasks.prayers[prayer.toLowerCase()] && React.createElement(CheckCircle, { className: "w-4 h-4" })
+                        )
+                      )
+                    )
+                  )
+                ),
+
+                // Quran Reading
+                React.createElement('div', { className: "bg-white rounded-xl shadow-lg p-6" },
+                  React.createElement('div', { className: "flex items-center space-x-2 mb-4" },
+                    React.createElement(BookOpen, { className: "w-6 h-6 text-emerald-600" }),
+                    React.createElement('h2', { className: "text-xl font-bold text-gray-800" }, 'Quran Reading')
+                  ),
+                  React.createElement('div', { className: "space-y-4" },
+                    React.createElement('div', { className: "flex items-center justify-between" },
+                      React.createElement('span', { className: "text-gray-700" }, 'Pages Read Today'),
+                      React.createElement('div', { className: "flex items-center space-x-2" },
+                        React.createElement('button', {
+                          onClick: () => updateQuranProgress(dailyTasks.quranReading.pages - 1),
+                          className: "w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300"
+                        }, '-'),
+                        React.createElement('span', { className: "w-12 text-center font-semibold" }, dailyTasks.quranReading.pages),
+                        React.createElement('button', {
+                          onClick: () => updateQuranProgress(dailyTasks.quranReading.pages + 1),
+                          className: "w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center hover:bg-emerald-600"
+                        }, '+')
+                      )
+                    ),
+                    React.createElement('div', { className: "bg-emerald-50 rounded-lg p-3" },
+                      React.createElement('div', { className: "flex justify-between text-sm mb-1" },
+                        React.createElement('span', null, `Target: ${dailyTasks.quranReading.targetPages} pages`),
+                        React.createElement('span', null, `${Math.round((dailyTasks.quranReading.pages / dailyTasks.quranReading.targetPages) * 100)}%`)
+                      ),
+                      React.createElement('div', { className: "w-full bg-emerald-200 rounded-full h-2" },
+                        React.createElement('div', { 
+                          className: "bg-emerald-500 h-2 rounded-full transition-all duration-300",
+                          style: { width: `${Math.min((dailyTasks.quranReading.pages / dailyTasks.quranReading.targetPages) * 100, 100)}%` }
+                        })
+                      )
+                    )
+                  )
+                ),
+
+                // Islamic Study
+                React.createElement('div', { className: "bg-white rounded-xl shadow-lg p-6" },
+                  React.createElement('div', { className: "flex items-center space-x-2 mb-4" },
+                    React.createElement(Star, { className: "w-6 h-6 text-purple-600" }),
+                    React.createElement('h2', { className: "text-xl font-bold text-gray-800" }, 'Islamic Study')
+                  ),
+                  React.createElement('div', { className: "space-y-4" },
+                    React.createElement('div', { className: "flex items-center justify-between" },
+                      React.createElement('span', { className: "text-gray-700" }, 'Minutes Studied'),
+                      React.createElement('div', { className: "flex items-center space-x-2" },
+                        React.createElement('button', {
+                          onClick: () => updateStudyTime(dailyTasks.islamicStudy.minutes - 5),
+                          className: "w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300"
+                        }, '-'),
+                        React.createElement('span', { className: "w-12 text-center font-semibold" }, dailyTasks.islamicStudy.minutes),
+                        React.createElement('button', {
+                          onClick: () => updateStudyTime(dailyTasks.islamicStudy.minutes + 5),
+                          className: "w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center hover:bg-purple-600"
+                        }, '+')
+                      )
+                    ),
+                    React.createElement('div', { className: "bg-purple-50 rounded-lg p-3" },
+                      React.createElement('div', { className: "flex justify-between text-sm mb-1" },
+                        React.createElement('span', null, `Target: ${dailyTasks.islamicStudy.targetMinutes} minutes`),
+                        React.createElement('span', null, `${Math.round((dailyTasks.islamicStudy.minutes / dailyTasks.islamicStudy.targetMinutes) * 100)}%`)
+                      ),
+                      React.createElement('div', { className: "w-full bg-purple-200 rounded-full h-2" },
+                        React.createElement('div', { 
+                          className: "bg-purple-500 h-2 rounded-full transition-all duration-300",
+                          style: { width: `${Math.min((dailyTasks.islamicStudy.minutes / dailyTasks.islamicStudy.targetMinutes) * 100, 100)}%` }
+                        })
+                      )
+                    )
+                  )
+                ),
+
+                // Dhikr Counter
+                React.createElement('div', { className: "bg-white rounded-xl shadow-lg p-6" },
+                  React.createElement('div', { className: "flex items-center space-x-2 mb-4" },
+                    React.createElement(Heart, { className: "w-6 h-6 text-rose-600" }),
+                    React.createElement('h2', { className: "text-xl font-bold text-gray-800" }, 'Dhikr & Tasbih')
+                  ),
+                  React.createElement('div', { className: "space-y-4" },
+                    React.createElement('div', { className: "text-center" },
+                      React.createElement('div', { className: "text-4xl font-bold text-rose-600 mb-2" }, dailyTasks.dhikr.count),
+                      React.createElement('div', { className: "text-gray-600 text-sm" }, `out of ${dailyTasks.dhikr.targetCount}`)
+                    ),
+                    React.createElement('div', { className: "flex justify-center space-x-2" },
+                      React.createElement('button', {
+                        onClick: () => updateDhikrCount(dailyTasks.dhikr.count - 1),
+                        className: "px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                      }, '-1'),
+                      React.createElement('button', {
+                        onClick: () => updateDhikrCount(dailyTasks.dhikr.count + 1),
+                        className: "px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600"
+                      }, '+1'),
+                      React.createElement('button', {
+                        onClick: () => updateDhikrCount(dailyTasks.dhikr.count + 10),
+                        className: "px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700"
+                      }, '+10')
+                    ),
+                    React.createElement('div', { className: "bg-rose-50 rounded-lg p-3" },
+                      React.createElement('div', { className: "w-full bg-rose-200 rounded-full h-2" },
+                        React.createElement('div', { 
+                          className: "bg-rose-500 h-2 rounded-full transition-all duration-300",
+                          style: { width: `${Math.min((dailyTasks.dhikr.count / dailyTasks.dhikr.targetCount) * 100, 100)}%` }
+                        })
+                      )
+                    )
+                  )
+                ),
+
+                // Study Topics
+                React.createElement('div', { className: "bg-white rounded-xl shadow-lg p-6" },
+                  React.createElement('h2', { className: "text-xl font-bold text-gray-800 mb-4" }, 'Study Topics'),
+                  React.createElement('div', { className: "space-y-2" },
+                    React.createElement('select', {
+                      value: selectedTopic,
+                      onChange: (e) => setSelectedTopic(e.target.value),
+                      className: "w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    },
+                      React.createElement('option', { value: "" }, 'Select a topic...'),
+                      studyTopics.map((topic) =>
+                        React.createElement('option', { key: topic, value: topic }, topic)
+                      )
+                    ),
+                    selectedTopic && React.createElement('div', { className: "mt-3 p-3 bg-emerald-50 rounded-lg" },
+                      React.createElement('p', { className: "text-emerald-800 font-medium" }, "Today's Focus:"),
+                      React.createElement('p', { className: "text-emerald-700" }, selectedTopic)
+                    )
+                  )
+                ),
+
+                // Weekly Goals
+                React.createElement('div', { className: "bg-white rounded-xl shadow-lg p-6" },
+                  React.createElement('h2', { className: "text-xl font-bold text-gray-800 mb-4" }, 'Weekly Goals'),
+                  React.createElement('div', { className: "space-y-4" },
+                    React.createElement('div', { className: "bg-blue-50 rounded-lg p-3" },
+                      React.createElement('div', { className: "flex justify-between items-center mb-2" },
+                        React.createElement('span', { className: "text-blue-800 font-medium" }, 'Quran Pages'),
+                        React.createElement('span', { className: "text-blue-700" }, `${weeklyGoals.quranPages.completed}/${weeklyGoals.quranPages.target}`)
+                      ),
+                      React.createElement('div', { className: "w-full bg-blue-200 rounded-full h-2" },
+                        React.createElement('div', { 
+                          className: "bg-blue-500 h-2 rounded-full",
+                          style: { width: `${(weeklyGoals.quranPages.completed / weeklyGoals.quranPages.target) * 100}%` }
+                        })
+                      )
+                    ),
+                    React.createElement('div', { className: "bg-indigo-50 rounded-lg p-3" },
+                      React.createElement('div', { className: "flex justify-between items-center mb-2" },
+                        React.createElement('span', { className: "text-indigo-800 font-medium" }, 'Hadith Study'),
+                        React.createElement('span', { className: "text-indigo-700" }, `${weeklyGoals.hadithStudy.completed}/${weeklyGoals.hadithStudy.target}`)
+                      ),
+                      React.createElement('div', { className: "w-full bg-indigo-200 rounded-full h-2" },
+                        React.createElement('div', { 
+                          className: "bg-indigo-500 h-2 rounded-full",
+                          style: { width: `${(weeklyGoals.hadithStudy.completed / weeklyGoals.hadithStudy.target) * 100}%` }
+                        })
+                      )
+                    )
+                  )
+                )
+              ),
+
+              // Notes Section
+              React.createElement('div', { className: "mt-6 bg-white rounded-xl shadow-lg p-6" },
+                React.createElement('h2', { className: "text-xl font-bold text-gray-800 mb-4" }, 'Study Notes & Reflections'),
+                React.createElement('textarea', {
+                  value: notes,
+                  onChange: (e) => setNotes(e.target.value),
+                  placeholder: "Write your daily reflections, learned concepts, or questions for further study...",
+                  className: "w-full h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+                }),
+                React.createElement('div', { className: "flex justify-end mt-3" },
+                  React.createElement('button', { 
+                    className: "px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors",
+                    onClick: () => alert('Notes saved locally!')
+                  }, 'Save Notes')
+                )
+              )
+            )
+          );
+        };
+
+        const App = () => {
+          return React.createElement(IslamicStudyTracker);
+        };
+
+        ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+</body>
+</html>
