@@ -14,7 +14,7 @@ A comprehensive web application to help Muslims track their daily Islamic practi
 
 ## Live Demo
 
-Visit the live application: [https://yourusername.github.io/islamic-study-tracker](https://yourusername.github.io/islamic-study-tracker)
+Visit the live application: [here](https://oamiikaka.github.io/)
 
 *(Replace 'yourusername' with your actual GitHub username)*
 
